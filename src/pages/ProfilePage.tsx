@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useVideos } from '@/context/VideoContext';
 import VideoCard from '@/components/VideoCard';
@@ -16,6 +16,15 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
   const [bio, setBio] = useState(user?.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar || '');
   const [saved, setSaved] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { setAvatarUrl(reader.result as string); };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = () => {
     if (!displayName.trim()) return;
@@ -28,6 +37,9 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
     setSaved(true);
     setTimeout(() => { setSaved(false); onClose(); }, 800);
   };
+
+  const previewSrc = avatarUrl ||
+    `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=dc2626&textColor=ffffff`;
 
   return (
     <div
@@ -44,22 +56,40 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="px-6 py-6 space-y-5">
-          {/* Avatar preview */}
-          <div className="flex items-center gap-4">
-            <img
-              src={avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=dc2626&textColor=ffffff`}
-              alt="avatar"
-              className="w-16 h-16 rounded-full border-2 border-yuvist-elevated object-cover"
-            />
-            <div className="flex-1">
-              <label className="block text-yuvist-muted text-xs mb-1.5 font-medium">Ссылка на фото</label>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={e => setAvatarUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full bg-yuvist-elevated border border-yuvist-elevated focus:border-yuvist-red rounded-xl px-3 py-2.5 text-white placeholder-yuvist-subtle text-sm outline-none transition-colors"
+          {/* Avatar upload */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative group">
+              <img
+                src={previewSrc}
+                alt="avatar"
+                className="w-24 h-24 rounded-full border-2 border-yuvist-elevated object-cover"
               />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+              >
+                <Icon name="Camera" size={24} className="text-white" />
+              </button>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="flex items-center gap-2 px-3 py-1.5 bg-yuvist-elevated hover:bg-yuvist-surface border border-yuvist-elevated rounded-lg text-yuvist-text text-xs transition-colors"
+              >
+                <Icon name="Upload" size={14} /> Загрузить фото
+              </button>
+              {avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => setAvatarUrl('')}
+                  className="px-3 py-1.5 bg-yuvist-elevated hover:bg-red-900/30 border border-yuvist-elevated rounded-lg text-yuvist-subtle hover:text-red-400 text-xs transition-colors"
+                >
+                  Сбросить
+                </button>
+              )}
             </div>
           </div>
 
@@ -110,8 +140,9 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
 
 export default function ProfilePage({ onNavigate, onAuthOpen, onUpload }: ProfilePageProps) {
   const { user, isAuthenticated, logout } = useAuth();
-  const { videos, subscriptions } = useVideos();
+  const { videos, subscriptions, deleteVideo } = useVideos();
   const [editOpen, setEditOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   if (!isAuthenticated || !user) {
     return (
@@ -200,7 +231,36 @@ export default function ProfilePage({ onNavigate, onAuthOpen, onUpload }: Profil
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
             {myVideos.map(video => (
-              <VideoCard key={video.id} video={video} onClick={id => onNavigate('player', id)} />
+              <div key={video.id} className="relative group">
+                <VideoCard video={video} onClick={id => onNavigate('player', id)} />
+                {/* Delete button */}
+                {deletingId === video.id ? (
+                  <div className="absolute inset-0 bg-black/80 rounded-xl flex flex-col items-center justify-center gap-3 animate-scale-in">
+                    <p className="text-white text-sm font-medium text-center px-4">Удалить видео?</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setDeletingId(null)}
+                        className="px-3 py-1.5 bg-yuvist-elevated rounded-lg text-yuvist-muted text-xs hover:text-white transition-colors"
+                      >
+                        Отмена
+                      </button>
+                      <button
+                        onClick={() => { deleteVideo(video.id); setDeletingId(null); }}
+                        className="px-3 py-1.5 bg-yuvist-red rounded-lg text-white text-xs hover:bg-yuvist-red-hover transition-colors"
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setDeletingId(video.id)}
+                    className="absolute top-2 right-2 w-8 h-8 bg-black/70 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+                  >
+                    <Icon name="Trash2" size={14} className="text-white" />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}

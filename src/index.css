@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide Poehali.dev badge */
+#pp-badge,
+[id^="pp-badge"],
+.pp-badge,
+div[data-pp-badge],
+[class*="pp-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 6%;
