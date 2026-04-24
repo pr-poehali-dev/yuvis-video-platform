@@ -11,8 +11,9 @@ import ProfilePage from '@/pages/ProfilePage';
 import VideoPlayerPage from '@/pages/VideoPlayerPage';
 import UploadPage from '@/pages/UploadPage';
 import AuthPage from '@/pages/AuthPage';
+import SettingsPage from '@/pages/SettingsPage';
 
-type Page = 'home' | 'catalog' | 'search' | 'subscriptions' | 'history' | 'favorites' | 'profile' | 'player';
+type Page = 'home' | 'catalog' | 'search' | 'subscriptions' | 'history' | 'favorites' | 'profile' | 'player' | 'settings';
 
 export default function Index() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -48,6 +49,8 @@ export default function Index() {
         return <FavoritesPage onNavigate={handleNavigate} onAuthOpen={() => setShowAuth(true)} />;
       case 'profile':
         return <ProfilePage onNavigate={handleNavigate} onAuthOpen={() => setShowAuth(true)} onUpload={() => setShowUpload(true)} />;
+      case 'settings':
+        return <SettingsPage onAuthOpen={() => setShowAuth(true)} onNavigate={handleNavigate} />;
       case 'player':
         return currentVideoId
           ? <VideoPlayerPage videoId={currentVideoId} onNavigate={handleNavigate} onAuthOpen={() => setShowAuth(true)} />
@@ -58,7 +61,7 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-yuvist-bg text-yuvist-text font-golos">
+    <div className="min-h-screen font-golos transition-colors duration-200" style={{ background: 'var(--yuvist-bg)', color: 'var(--yuvist-text)' }}>
       <Navbar
         onSearch={handleSearch}
         onNavigate={handleNavigate}
@@ -68,8 +71,8 @@ export default function Index() {
       />
       <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
 
-      <main className="md:ml-56 pt-14 pb-20 md:pb-6 px-4 md:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-screen-2xl mx-auto py-6">
+      <main className="md:ml-56 pt-14 pb-20 md:pb-6 px-3 md:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-screen-2xl mx-auto py-4 md:py-6">
           {renderPage()}
         </div>
       </main>

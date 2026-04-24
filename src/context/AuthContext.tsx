@@ -16,6 +16,8 @@ interface AuthContextType {
   register: (username: string, displayName: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (data: Partial<Pick<User, 'displayName' | 'avatar' | 'bio'>>) => void;
+  changePassword: (oldPassword: string, newPassword: string) => boolean;
+  deleteAccount: () => void;
   isAuthenticated: boolean;
 }
 
@@ -30,20 +32,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const session = localStorage.getItem(SESSION_KEY);
     if (session) {
-      try {
-        setUser(JSON.parse(session));
-      } catch (_e) {
-        localStorage.removeItem(SESSION_KEY);
-      }
+      try { setUser(JSON.parse(session)); }
+      catch (_e) { localStorage.removeItem(SESSION_KEY); }
     }
   }, []);
 
   const getUsers = (): Record<string, { user: User; password: string }> => {
-    try {
-      return JSON.parse(localStorage.getItem(USERS_KEY) || '{}');
-    } catch (_e) {
-      return {};
-    }
+    try { return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); }
+    catch (_e) { return {}; }
   };
 
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -91,8 +87,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
   };
 
+  const changePassword = (oldPassword: string, newPassword: string): boolean => {
+    if (!user) return false;
+    const users = getUsers();
+    const entry = users[user.username];
+    if (!entry || entry.password !== oldPassword) return false;
+    entry.password = newPassword;
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    return true;
+  };
+
+  const deleteAccount = () => {
+    if (!user) return;
+    const users = getUsers();
+    delete users[user.username];
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    setUser(null);
+    localStorage.removeItem(SESSION_KEY);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, changePassword, deleteAccount, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

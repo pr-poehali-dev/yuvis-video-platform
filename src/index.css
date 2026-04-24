@@ -14,57 +14,102 @@ div[data-pp-badge],
   pointer-events: none !important;
 }
 
-@layer base {
-  :root {
-    --background: 0 0% 6%;
-    --foreground: 0 0% 95%;
+/* ===== DARK THEME (default) ===== */
+:root,
+.dark-theme {
+  --background: 0 0% 6%;
+  --foreground: 0 0% 95%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 0 72% 51%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 55%;
+  --accent: 0 0% 14%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 95%;
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+  --ring: 0 72% 51%;
+  --radius: 0.75rem;
+  --sidebar-background: 0 0% 9%;
+  --sidebar-foreground: 0 0% 85%;
+  --sidebar-primary: 0 72% 51%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 14%;
+  --sidebar-accent-foreground: 0 0% 95%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-ring: 0 72% 51%;
 
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 95%;
+  --yuvist-bg: #0f0f0f;
+  --yuvist-surface: #181818;
+  --yuvist-elevated: #212121;
+  --yuvist-text: #f1f1f1;
+  --yuvist-muted: #aaaaaa;
+  --yuvist-subtle: #717171;
+  --yuvist-nav-bg: rgba(15, 15, 15, 0.97);
+  --yuvist-nav-border: rgba(255, 255, 255, 0.06);
+  --yuvist-sidebar-bg: rgba(15, 15, 15, 0.98);
+}
 
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 95%;
+/* ===== LIGHT THEME ===== */
+.light-theme {
+  --background: 0 0% 98%;
+  --foreground: 0 0% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 8%;
+  --primary: 0 72% 51%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 94%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 0 0% 94%;
+  --accent-foreground: 0 0% 10%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 88%;
+  --input: 0 0% 88%;
+  --ring: 0 72% 51%;
+  --sidebar-background: 0 0% 97%;
+  --sidebar-foreground: 0 0% 20%;
+  --sidebar-primary: 0 72% 51%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 92%;
+  --sidebar-accent-foreground: 0 0% 10%;
+  --sidebar-border: 0 0% 88%;
+  --sidebar-ring: 0 72% 51%;
 
-    --primary: 0 72% 51%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 95%;
-
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 55%;
-
-    --accent: 0 0% 14%;
-    --accent-foreground: 0 0% 95%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 95%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 72% 51%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 9%;
-    --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 0 72% 51%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 14%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 0 72% 51%;
-  }
+  --yuvist-bg: #f9f9f9;
+  --yuvist-surface: #ffffff;
+  --yuvist-elevated: #f0f0f0;
+  --yuvist-text: #0f0f0f;
+  --yuvist-muted: #606060;
+  --yuvist-subtle: #909090;
+  --yuvist-nav-bg: rgba(249, 249, 249, 0.97);
+  --yuvist-nav-border: rgba(0, 0, 0, 0.08);
+  --yuvist-sidebar-bg: rgba(249, 249, 249, 0.98);
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
     font-family: "Golos Text", sans-serif;
+    background-color: var(--yuvist-bg);
+    color: var(--yuvist-text);
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
   }
 
   ::-webkit-scrollbar {
@@ -72,14 +117,14 @@ div[data-pp-badge],
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0f0f0f;
+    background: var(--yuvist-bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: #333;
+    background: var(--yuvist-elevated);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: var(--yuvist-muted);
   }
 }
 
@@ -93,22 +138,31 @@ div[data-pp-badge],
   .animate-slide-up {
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
+
+  /* Theme-aware utility classes */
+  .bg-yuvist-bg {
+    background-color: var(--yuvist-bg);
   }
-  .video-hover {
-    @apply transition-all duration-300;
+  .bg-yuvist-surface {
+    background-color: var(--yuvist-surface);
   }
-  .video-hover:hover {
-    @apply scale-[1.02] shadow-2xl;
+  .bg-yuvist-elevated {
+    background-color: var(--yuvist-elevated);
   }
-  .glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .text-yuvist-text {
+    color: var(--yuvist-text);
   }
-  .red-glow {
-    box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+  .text-yuvist-muted {
+    color: var(--yuvist-muted);
+  }
+  .text-yuvist-subtle {
+    color: var(--yuvist-subtle);
+  }
+  .border-yuvist-elevated {
+    border-color: var(--yuvist-elevated);
+  }
+  .border-yuvist-surface {
+    border-color: var(--yuvist-surface);
   }
 }
 
