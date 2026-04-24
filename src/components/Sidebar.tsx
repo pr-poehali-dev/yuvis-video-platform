@@ -37,9 +37,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           ))}
         </nav>
 
-        <div className="mt-auto px-4 pt-4 border-t border-yuvist-elevated">
-          <p className="text-yuvist-subtle text-xs">© 2024 Ювист</p>
-        </div>
+
       </aside>
 
       {/* Mobile bottom nav */}

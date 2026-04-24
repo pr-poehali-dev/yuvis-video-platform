@@ -5,6 +5,7 @@ export interface User {
   username: string;
   displayName: string;
   avatar: string;
+  bio: string;
   subscribers: number;
   createdAt: string;
 }
@@ -14,6 +15,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   register: (username: string, displayName: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateProfile: (data: Partial<Pick<User, 'displayName' | 'avatar' | 'bio'>>) => void;
   isAuthenticated: boolean;
 }
 
@@ -61,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       username: username.toLowerCase(),
       displayName,
       avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=dc2626&textColor=ffffff`,
+      bio: '',
       subscribers: 0,
       createdAt: new Date().toISOString(),
     };
@@ -76,8 +79,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(SESSION_KEY);
   };
 
+  const updateProfile = (data: Partial<Pick<User, 'displayName' | 'avatar' | 'bio'>>) => {
+    if (!user) return;
+    const updated = { ...user, ...data };
+    const users = getUsers();
+    if (users[user.username]) {
+      users[user.username].user = updated;
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+    setUser(updated);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

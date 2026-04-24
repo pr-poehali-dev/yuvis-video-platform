@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useVideos } from '@/context/VideoContext';
 import VideoCard from '@/components/VideoCard';
@@ -9,9 +10,108 @@ interface ProfilePageProps {
   onUpload: () => void;
 }
 
+function EditProfileModal({ onClose }: { onClose: () => void }) {
+  const { user, updateProfile } = useAuth();
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [bio, setBio] = useState(user?.bio || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar || '');
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    if (!displayName.trim()) return;
+    updateProfile({
+      displayName: displayName.trim(),
+      bio: bio.trim(),
+      avatar: avatarUrl.trim() ||
+        `https://api.dicebear.com/7.x/initials/svg?seed=${displayName.trim()}&backgroundColor=dc2626&textColor=ffffff`,
+    });
+    setSaved(true);
+    setTimeout(() => { setSaved(false); onClose(); }, 800);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div className="w-full max-w-md bg-yuvist-surface border border-yuvist-elevated rounded-2xl overflow-hidden animate-scale-in shadow-2xl">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-yuvist-elevated">
+          <h2 className="text-white font-bold text-lg">Редактировать профиль</h2>
+          <button onClick={onClose} className="text-yuvist-subtle hover:text-white transition-colors">
+            <Icon name="X" size={20} />
+          </button>
+        </div>
+
+        <div className="px-6 py-6 space-y-5">
+          {/* Avatar preview */}
+          <div className="flex items-center gap-4">
+            <img
+              src={avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}&backgroundColor=dc2626&textColor=ffffff`}
+              alt="avatar"
+              className="w-16 h-16 rounded-full border-2 border-yuvist-elevated object-cover"
+            />
+            <div className="flex-1">
+              <label className="block text-yuvist-muted text-xs mb-1.5 font-medium">Ссылка на фото</label>
+              <input
+                type="url"
+                value={avatarUrl}
+                onChange={e => setAvatarUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full bg-yuvist-elevated border border-yuvist-elevated focus:border-yuvist-red rounded-xl px-3 py-2.5 text-white placeholder-yuvist-subtle text-sm outline-none transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-yuvist-muted text-xs mb-1.5 font-medium">Имя канала *</label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              placeholder="Моё имя"
+              className="w-full bg-yuvist-elevated border border-yuvist-elevated focus:border-yuvist-red rounded-xl px-4 py-3 text-white placeholder-yuvist-subtle text-sm outline-none transition-colors"
+            />
+          </div>
+
+          <div>
+            <label className="block text-yuvist-muted text-xs mb-1.5 font-medium">О канале</label>
+            <textarea
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+              placeholder="Расскажите о своём канале..."
+              rows={3}
+              maxLength={300}
+              className="w-full bg-yuvist-elevated border border-yuvist-elevated focus:border-yuvist-red rounded-xl px-4 py-3 text-white placeholder-yuvist-subtle text-sm outline-none transition-colors resize-none"
+            />
+            <p className="text-yuvist-subtle text-xs mt-1 text-right">{bio.length}/300</p>
+          </div>
+
+          <div className="flex gap-3 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 rounded-xl border border-yuvist-elevated text-yuvist-muted hover:text-white transition-colors text-sm"
+            >
+              Отмена
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!displayName.trim() || saved}
+              className="flex-1 py-3 bg-yuvist-red hover:bg-yuvist-red-hover text-white rounded-xl font-semibold transition-all disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+            >
+              {saved ? <><Icon name="Check" size={16} /> Сохранено</> : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProfilePage({ onNavigate, onAuthOpen, onUpload }: ProfilePageProps) {
   const { user, isAuthenticated, logout } = useAuth();
   const { videos, subscriptions } = useVideos();
+  const [editOpen, setEditOpen] = useState(false);
 
   if (!isAuthenticated || !user) {
     return (
@@ -31,7 +131,6 @@ export default function ProfilePage({ onNavigate, onAuthOpen, onUpload }: Profil
   const myVideos = videos.filter(v => v.authorId === user.id);
   const totalViews = myVideos.reduce((sum, v) => sum + v.views, 0);
   const totalLikes = myVideos.reduce((sum, v) => sum + v.likes.length, 0);
-
   const formatNum = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(0)}К` : n.toString();
 
   return (
@@ -46,21 +145,28 @@ export default function ProfilePage({ onNavigate, onAuthOpen, onUpload }: Profil
         <img
           src={user.avatar}
           alt={user.displayName}
-          className="w-24 h-24 rounded-full border-4 border-yuvist-bg flex-shrink-0"
+          className="w-24 h-24 rounded-full border-4 border-yuvist-bg flex-shrink-0 object-cover"
         />
         <div className="flex-1 sm:pb-2">
           <h2 className="text-white font-black text-2xl">{user.displayName}</h2>
           <p className="text-yuvist-muted text-sm">@{user.username}</p>
+          {user.bio && <p className="text-yuvist-subtle text-sm mt-1 max-w-md">{user.bio}</p>}
           <p className="text-yuvist-subtle text-xs mt-1">
             {subscriptions.length} подписок · на платформе с {new Date(user.createdAt).toLocaleDateString('ru')}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          <button
+            onClick={() => setEditOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-yuvist-elevated hover:bg-yuvist-surface text-white rounded-xl font-medium text-sm transition-colors border border-yuvist-elevated"
+          >
+            <Icon name="Pencil" size={15} /> Редактировать
+          </button>
           <button onClick={onUpload} className="flex items-center gap-2 px-4 py-2 bg-yuvist-red hover:bg-yuvist-red-hover text-white rounded-xl font-medium text-sm transition-colors">
-            <Icon name="Upload" size={16} /> Загрузить
+            <Icon name="Upload" size={15} /> Загрузить
           </button>
           <button onClick={logout} className="flex items-center gap-2 px-4 py-2 bg-yuvist-elevated hover:bg-yuvist-surface text-yuvist-muted hover:text-red-400 rounded-xl text-sm transition-colors border border-yuvist-elevated">
-            <Icon name="LogOut" size={16} /> Выйти
+            <Icon name="LogOut" size={15} /> Выйти
           </button>
         </div>
       </div>
@@ -99,6 +205,8 @@ export default function ProfilePage({ onNavigate, onAuthOpen, onUpload }: Profil
           </div>
         )}
       </div>
+
+      {editOpen && <EditProfileModal onClose={() => setEditOpen(false)} />}
     </div>
   );
 }
